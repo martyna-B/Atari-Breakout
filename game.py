@@ -8,6 +8,15 @@ SCREEN_TITLE = "Game"
 WALL_SCALING = 1
 PLAYER_SCALING = 0.5
 BALL_SCALING = 0.15
+BRICK_SCALING = 0.3
+
+BRICK_BROWN = "images/brick1.jpg"
+BRICK_RED = "images/brick2.jpg"
+BRICK_FADED = "images/brick3.jpg"
+BRICK_GREY = "images/brick4.jpg"
+
+COLOR_SOUND = "sounds/change_color.wav"
+BREAK_SOUND = "sounds/break_down.wav"
 
 PLAYER_MOVEMENT_SPEED = 8
 
@@ -23,6 +32,10 @@ class MyGame(arcade.Window):
         self.block_list_2 = None
         self.block_list_3 = None
         self.block_list_4 = None
+
+        self.color_sound = arcade.load_sound(COLOR_SOUND)
+        self.break_sound = arcade.load_sound(BREAK_SOUND)
+        
         self.player_list = None
 
         self.background = None
@@ -39,6 +52,8 @@ class MyGame(arcade.Window):
         self.coin_list = arcade.SpriteList()
         self.block_list_1 = arcade.SpriteList()
         self.block_list_2 = arcade.SpriteList()
+        self.block_list_3 = arcade.SpriteList()
+        self.block_list_4 = arcade.SpriteList()
 
         self.background = arcade.load_texture("images/wall.jpg")
 
@@ -66,21 +81,23 @@ class MyGame(arcade.Window):
             wall.center_y = 710
             self.wall_list.append(wall)
 
-        brick1_image = "images/brick1.jpg"
-
         for x in range(150, 800, 57):
-            brick = arcade.Sprite(brick1_image, 0.23)
+            brick = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
             brick.center_x = x
             brick.center_y = 500
             self.block_list_1.append(brick)
 
-        brick2_image = "images/brick2.jpg"
-
         for x in range(150, 800, 100):
-            brick = arcade.Sprite(brick2_image, 0.23)
+            brick = arcade.Sprite(BRICK_RED, BRICK_SCALING)
             brick.center_x = x
             brick.center_y = 470
             self.block_list_2.append(brick)
+
+        for x in range(50, 800, 130):
+            brick = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+            brick.center_x = x
+            brick.center_y = 450
+            self.block_list_3.append(brick)
             
         ball_image = "images/ball.png"
                                   
@@ -118,8 +135,12 @@ class MyGame(arcade.Window):
             hit_walls = arcade.check_for_collision_with_list(ball, self.wall_list)
             hit_blocks1 = arcade.check_for_collision_with_list(ball, self.block_list_1)
             hit_blocks2 = arcade.check_for_collision_with_list(ball, self.block_list_2)
-            hit_blocks = hit_blocks1 + hit_blocks2
-            player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
+            hit_blocks3 = arcade.check_for_collision_with_list(ball, self.block_list_3)
+            hit_blocks4 = arcade.check_for_collision_with_list(ball, self.block_list_4)
+            
+            hit_blocks = hit_blocks1 + hit_blocks2 + hit_blocks3 + hit_blocks4
+            
+            #player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
             x_hits = hit_walls + hit_blocks
 
             for wall in x_hits:
@@ -131,11 +152,26 @@ class MyGame(arcade.Window):
                 ball.change_x *= -1
 
             for block in hit_blocks:
-                if block in hit_blocks2:
-                    block_new = arcade.Sprite("images/brick1.jpg", 0.23)
+                if block in hit_blocks4:
+                    block_new = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_3.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                elif block in hit_blocks3:
+                    block_new = arcade.Sprite(BRICK_RED, BRICK_SCALING)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_2.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                elif block in hit_blocks2:
+                    block_new = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_1.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                else:
+                    arcade.play_sound(self.break_sound)
                 block.remove_from_sprite_lists()
 
             ball.center_y += ball.change_y
@@ -143,7 +179,11 @@ class MyGame(arcade.Window):
             hit_walls = arcade.check_for_collision_with_list(ball, self.wall_list)
             hit_blocks1 = arcade.check_for_collision_with_list(ball, self.block_list_1)
             hit_blocks2 = arcade.check_for_collision_with_list(ball, self.block_list_2)
-            hit_blocks = hit_blocks1 + hit_blocks2
+            hit_blocks3 = arcade.check_for_collision_with_list(ball, self.block_list_3)
+            hit_blocks4 = arcade.check_for_collision_with_list(ball, self.block_list_4)
+            
+            hit_blocks = hit_blocks1 + hit_blocks2 + hit_blocks3 + hit_blocks4
+            
             y_hits = hit_walls + hit_blocks
             
             for wall in y_hits:
@@ -155,11 +195,26 @@ class MyGame(arcade.Window):
                 ball.change_y *= -1
 
             for block in hit_blocks:
-                if block in hit_blocks2:
-                    block_new = arcade.Sprite("images/brick1.jpg", 0.23)
+                if block in hit_blocks4:
+                    block_new = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_3.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                elif block in hit_blocks3:
+                    block_new = arcade.Sprite(BRICK_RED, BRICK_SCALING)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_2.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                elif block in hit_blocks2:
+                    block_new = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_1.append(block_new)
+                    arcade.play_sound(self.color_sound)
+                else:
+                    arcade.play_sound(self.break_sound)
                 block.remove_from_sprite_lists()
 
             player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
@@ -167,7 +222,7 @@ class MyGame(arcade.Window):
                 ball.bottom = wall.top
                 for player in self.player_list:
                     ball.change_y *= -1
-                    ball.change_x = (ball.center_x - player.center_x)*0.03
+                    ball.change_x = (ball.center_x - player.center_x)*0.05
                 
         self.physics_engine.update()
         
@@ -181,6 +236,8 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.block_list_1.draw()
         self.block_list_2.draw()
+        self.block_list_3.draw()
+        self.block_list_4.draw()
 
 
 def main():
