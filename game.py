@@ -25,11 +25,12 @@ class MyGame(arcade.Window):
         self.block_list_4 = None
         self.player_list = None
 
+        self.background = None
+
         self.player_sprite = None
         
         self.physics_engine = None
 
-        arcade.set_background_color(arcade.color.WHITE)
 
     def setup(self):
 
@@ -37,6 +38,9 @@ class MyGame(arcade.Window):
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.block_list_1 = arcade.SpriteList()
+        self.block_list_2 = arcade.SpriteList()
+
+        self.background = arcade.load_texture("images/wall.jpg")
 
         player_image = "images/player_wall.jpg"
 
@@ -62,14 +66,22 @@ class MyGame(arcade.Window):
             wall.center_y = 710
             self.wall_list.append(wall)
 
-        brick_image = "images/brick.jpg"
+        brick1_image = "images/brick1.jpg"
 
         for x in range(150, 800, 57):
-            brick = arcade.Sprite(brick_image, 0.23)
+            brick = arcade.Sprite(brick1_image, 0.23)
             brick.center_x = x
             brick.center_y = 500
             self.block_list_1.append(brick)
 
+        brick2_image = "images/brick2.jpg"
+
+        for x in range(150, 800, 100):
+            brick = arcade.Sprite(brick2_image, 0.23)
+            brick.center_x = x
+            brick.center_y = 470
+            self.block_list_2.append(brick)
+            
         ball_image = "images/ball.png"
                                   
         ball = arcade.Sprite(ball_image, BALL_SCALING)
@@ -104,7 +116,10 @@ class MyGame(arcade.Window):
             ball.center_x += ball.change_x
             
             hit_walls = arcade.check_for_collision_with_list(ball, self.wall_list)
-            hit_blocks = arcade.check_for_collision_with_list(ball, self.block_list_1)
+            hit_blocks1 = arcade.check_for_collision_with_list(ball, self.block_list_1)
+            hit_blocks2 = arcade.check_for_collision_with_list(ball, self.block_list_2)
+            hit_blocks = hit_blocks1 + hit_blocks2
+            player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
             x_hits = hit_walls + hit_blocks
 
             for wall in x_hits:
@@ -115,12 +130,22 @@ class MyGame(arcade.Window):
             if len(x_hits) > 0:
                 ball.change_x *= -1
 
+            for block in hit_blocks:
+                if block in hit_blocks2:
+                    block_new = arcade.Sprite("images/brick1.jpg", 0.23)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_1.append(block_new)
+                block.remove_from_sprite_lists()
+
             ball.center_y += ball.change_y
             
             hit_walls = arcade.check_for_collision_with_list(ball, self.wall_list)
-            hit_blocks = arcade.check_for_collision_with_list(ball, self.block_list_1)
-            player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
-            y_hits = hit_walls + hit_blocks + player_wall
+            hit_blocks1 = arcade.check_for_collision_with_list(ball, self.block_list_1)
+            hit_blocks2 = arcade.check_for_collision_with_list(ball, self.block_list_2)
+            hit_blocks = hit_blocks1 + hit_blocks2
+            y_hits = hit_walls + hit_blocks
+            
             for wall in y_hits:
                 if ball.change_y > 0:
                     ball.top = wall.bottom
@@ -130,15 +155,19 @@ class MyGame(arcade.Window):
                 ball.change_y *= -1
 
             for block in hit_blocks:
+                if block in hit_blocks2:
+                    block_new = arcade.Sprite("images/brick1.jpg", 0.23)
+                    block_new.center_x = block.center_x
+                    block_new.center_y = block.center_y
+                    self.block_list_1.append(block_new)
                 block.remove_from_sprite_lists()
 
-            
-            if ball.bottom <= 15:
+            player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
+            for wall in player_wall:
+                ball.bottom = wall.top
                 for player in self.player_list:
-                    if ball.right < player.right and ball.left > player.left:
-                        ball.change_y *= -1
-                        ball.change_x = (ball.center_x - player.center_x)*0.03
-
+                    ball.change_y *= -1
+                    ball.change_x = (ball.center_x - player.center_x)*0.03
                 
         self.physics_engine.update()
         
@@ -146,10 +175,12 @@ class MyGame(arcade.Window):
     def on_draw(self):
         
         arcade.start_render()
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
         self.wall_list.draw()
         self.coin_list.draw()
         self.player_list.draw()
         self.block_list_1.draw()
+        self.block_list_2.draw()
 
 
 def main():
