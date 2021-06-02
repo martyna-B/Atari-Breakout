@@ -17,14 +17,17 @@ BRICK_GREY = "images/brick4.jpg"
 
 COLOR_SOUND = "sounds/change_color.wav"
 BREAK_SOUND = "sounds/break_down.wav"
+STARTING_SOUND = "sounds/start_game.wav"
 
-PLAYER_MOVEMENT_SPEED = 8
+PLAYER_MOVEMENT_SPEED = 12
+MAX_SPEED = 10
+MIN_SPEED = 6
 
-class MyGame(arcade.Window):
+class MyGame(arcade.View):
 
     def __init__(self):
 
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__()
 
         self.coin_list = None
         self.wall_list = None
@@ -33,8 +36,16 @@ class MyGame(arcade.Window):
         self.block_list_3 = None
         self.block_list_4 = None
 
+        self.start_game = False
+        self.lifes = 1
+
+
+        self.score = 0
+        self.num_of_bounds = 0
+
         self.color_sound = arcade.load_sound(COLOR_SOUND)
         self.break_sound = arcade.load_sound(BREAK_SOUND)
+        
         
         self.player_list = None
 
@@ -66,7 +77,7 @@ class MyGame(arcade.Window):
 
         wally_image = "images/y_wall.jpg"
 
-        for y in [0, 354, 708]:
+        for y in [-708, -354, 0, 354, 708]:
             for x in [1, 1000]:
                 wall = arcade.Sprite(wally_image, WALL_SCALING)
                 wall.center_x = x
@@ -171,32 +182,36 @@ class MyGame(arcade.Window):
                 ball.change_x *= -1
 
             for block in hit_blocks:
+                self.score += 1
                 if block in hit_blocks4:
                     block_new = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_3.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    ball.change_y *= 1.3
+                    ball.change_y *= 1.25
                 elif block in hit_blocks3:
                     block_new = arcade.Sprite(BRICK_RED, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_2.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    ball.change_y *= 1.3
-                    ball.change_x *= random.random()
+                    if ball.change_y < MAX_SPEED:
+                        ball.change_y *= 1.25
                 elif block in hit_blocks2:
                     block_new = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_1.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    ball.change_y *= 1.25
+                    if ball.change_y < MAX_SPEED:
+                        ball.change_y *= 1.25
                 else:
                     arcade.play_sound(self.break_sound)
-                    ball.change_y *= 0.9
+                    if ball.change_y > MIN_SPEED:
+                        ball.change_y *= 0.9
                 block.remove_from_sprite_lists()
+                
 
             ball.center_y += ball.change_y
             
@@ -239,14 +254,21 @@ class MyGame(arcade.Window):
                     arcade.play_sound(self.color_sound)
                 else:
                     arcade.play_sound(self.break_sound)
+                    self.score += 1
                 block.remove_from_sprite_lists()
+                
 
             player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
             for wall in player_wall:
                 ball.bottom = wall.top
                 for player in self.player_list:
+                    self.num_of_bounds += 1
                     ball.change_y *= -1
-                    ball.change_x = (ball.center_x - player.center_x)*0.05
+                    ball.change_x = (ball.center_x - player.center_x)*0.1
+
+            if ball.center_y < -100:
+                game_over_view = GameOverView()
+                self.window.show_view(game_over_view)
                 
         self.physics_engine.update()
         
@@ -262,11 +284,119 @@ class MyGame(arcade.Window):
         self.block_list_2.draw()
         self.block_list_3.draw()
         self.block_list_4.draw()
+        arcade.draw_text("Score: %d/92" % self.score, start_x = 25, start_y = 25, color = (0, 0, 0), font_size = 14)
 
+class GameOverView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.start_sound = arcade.load_sound(STARTING_SOUND)
+        self.title_image = arcade.load_texture("images/menu_wall.jpg")
+        self.display_timer = 1.0
+        self.show_press = False
 
+    def on_update(self, delta_time: float):
+        self.display_timer -= delta_time
+        
+        if self.display_timer < 0:
+            self.show_press = not self.show_press
+            self.display_timer = 1.0
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
+                                      width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
+                                      texture = self.title_image)
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 470, width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 100))
+        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 470, width = SCREEN_WIDTH, height = 250, color = (0, 0, 0))
+        arcade.draw_text("Game Over!", 200, 430, arcade.color.BLACK, 100)
+        if self.show_press:
+            arcade.draw_text("Press SPACE to play again", start_x = 325, start_y = 380, color = arcade.color.BLACK, font_size = 25)
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            arcade.play_sound(self.start_sound)
+            view = TitleView()
+            self.window.show_view(view)
+
+class TitleView(arcade.View):
+
+    def __init__(self):
+        super().__init__()
+
+        self.start_sound = arcade.load_sound(STARTING_SOUND)
+        self.title_image = arcade.load_texture("images/menu_wall.jpg")
+        self.display_timer = 1.0
+        self.show_press = False
+
+    def on_update(self, delta_time: float):
+        self.display_timer -= delta_time
+        
+        if self.display_timer < 0:
+            self.show_press = not self.show_press
+            self.display_timer = 1.0
+
+    def on_draw(self):
+        arcade.start_render()
+
+        arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
+                                      width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
+                                      texture = self.title_image)
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 100))
+        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH, height = 250, color = (0, 0, 0))
+        arcade.draw_text("Atari Breakout", start_x = 240, start_y = 500, color = arcade.color.BLACK, font_size=70)
+
+        if self.show_press:
+            arcade.draw_text("Press SPACE to start", start_x = 300, start_y = 400, color = arcade.color.BLACK, font_size = 40)
+
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 70, width = SCREEN_WIDTH, height = 50, color = (255, 255, 255, 60))
+        arcade.draw_text("Press M for more information", start_x = 310, start_y = 50, color = arcade.color.BLACK, font_size = 25)
+        
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            arcade.play_sound(self.start_sound)
+            game_view = MyGame()
+            game_view.setup()
+            self.window.show_view(game_view)
+        elif key == arcade.key.M:
+            game_view = InformationView()
+            self.window.show_view(game_view)
+
+class InformationView(arcade.View):
+
+    def __init__(self):
+        super().__init__()
+        self.start_sound = arcade.load_sound(STARTING_SOUND)
+        self.title_image = arcade.load_texture("images/menu_wall.jpg")
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
+                                      width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
+                                      texture = self.title_image)
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 595,
+                                      width = SCREEN_WIDTH, height = 200, color = (255, 255, 255, 200))
+        arcade.draw_text("HOW TO PLAY?", start_x = 25, start_y = 650, color = arcade.color.BLACK, font_size=32)
+        arcade.draw_text("Use arrow or WSAD keys to move your platfrom and bounce a ball.\n\nYour purpose is to break down all the bricks.\n\nBe careful! The ball speeds up when it touches a brick but doesn't break it.\n\nDont let the ball fall down!",
+                         start_x = 25, start_y = 500, color = arcade.color.BLACK, font_size=18)
+
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 375,
+                                      width = SCREEN_WIDTH, height = 150, color = (255, 255, 255, 200))
+        arcade.draw_text("ABOUT AUTHOR", start_x = 25, start_y = 400, color = arcade.color.BLACK, font_size = 32)
+        arcade.draw_text("My name is Martyna and I study Applied Mathematics at Wroclaw University of Science and Technology.\n\nI made this game for my programming classes.", start_x = 25, start_y = 320, color = (0, 0, 0), font_size = 18)
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            arcade.play_sound(self.start_sound)
+            game_view = TitleView()
+            self.window.show_view(game_view)
+                
 def main():
-    window = MyGame()
-    window.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Atari")
+    title_view = TitleView()
+    window.show_view(title_view)
+    #view = MyGame()
+    #view.setup()
+    #window.show_view(view)
     arcade.run()
 
 if __name__ == "__main__":
