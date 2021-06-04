@@ -38,9 +38,10 @@ class MyGame(arcade.View):
 
         self.start_game = False
         self.lifes = 1
+        self.level = 1
 
 
-        self.score = 0
+        
         self.num_of_bounds = 0
 
         self.color_sound = arcade.load_sound(COLOR_SOUND)
@@ -56,8 +57,9 @@ class MyGame(arcade.View):
         self.physics_engine = None
 
 
-    def setup(self):
+    def setup(self, level):
 
+        self.score = 0
         self.player_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
@@ -92,43 +94,123 @@ class MyGame(arcade.View):
             wall.center_y = 710
             self.wall_list.append(wall)
 
-        brown_bricks = [(8,3), (8,11), (14,7), (15,6), (15,8), (16,5), (16,9), (17,4), (17,10), (18,3), (18,11), (19,2), (19,12), (20,3), (20,11), (21,4), (21,10), (22,5), (22,9), (23,6), (23,8), (24,7)]
+        if level == 3:
 
-        for position in brown_bricks:
-            brick = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
-            brick.right = 73*position[1] + 25
-            brick.bottom = 25*position[0]
-            self.block_list_1.append(brick)
+            brown_bricks = [(8,3), (8,11), (14,7), (15,6), (15,8), (16,5), (16,9), (17,4), (17,10), (18,3), (18,11), (19,2), (19,12), (20,3), (20,11), (21,4), (21,10), (22,5), (22,9), (23,6), (23,8), (24,7)]
 
-        red_bricks = [(7,3), (7,11), (8,2), (8,4), (9,3), (8,10), (8,12), (9,11), (15,7), (16,6), (16,8), (17,5), (17,9), (18,4), (18,10), (19,3),(19,11), (20,4), (20,10), (21,5), (21,9), (22,6), (22,8), (23,7), (26,3), (26,11)]
+            for position in brown_bricks:
+                brick = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_1.append(brick)
 
-        for position in red_bricks:
-            brick = arcade.Sprite(BRICK_RED, BRICK_SCALING)
-            brick.right = 73*position[1] + 25
-            brick.bottom = 25*position[0]
-            self.block_list_2.append(brick)
+            red_bricks = [(7,3), (7,11), (8,2), (8,4), (9,3), (8,10), (8,12), (9,11), (15,7), (16,6), (16,8), (17,5), (17,9), (18,4), (18,10), (19,3),(19,11), (20,4), (20,10), (21,5), (21,9), (22,6), (22,8), (23,7), (26,3), (26,11)]
 
-        pink_bricks = [(11,6), (11,8), (12,5), (12,9), (13,4), (13,10), (14,3), (14,11), (15,2), (15,12), (16,7), (17,6), (17,8), (18,5), (18,7), (18,9), (19,4), (19,6), (19,8), (19,10), (20,5), (20,7), (20,9), (21,6), (21,8), (22,7)]
+            for position in red_bricks:
+                brick = arcade.Sprite(BRICK_RED, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_2.append(brick)
 
-        for position in pink_bricks:
-            brick = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
-            brick.right = 73*position[1] + 25
-            brick.bottom = 25*position[0]
-            self.block_list_3.append(brick)
+            pink_bricks = [(11,6), (11,8), (12,5), (12,9), (13,4), (13,10), (14,3), (14,11), (15,2), (15,12), (16,7), (17,6), (17,8), (18,5), (18,7), (18,9), (19,4), (19,6), (19,8), (19,10), (20,5), (20,7), (20,9), (21,6), (21,8), (22,7)]
 
-        grey_bricks = [(10,7), (16,1), (16,13), (17,7), (18,6), (18,8), (19,5), (19,7), (19,9), (20,6), (20,8), (21,7), (25,3), (25,11), (26,2), (26,4), (26,10), (26,12)]
+            for position in pink_bricks:
+                brick = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_3.append(brick)
 
-        for position in grey_bricks:
-            brick = arcade.Sprite(BRICK_GREY, BRICK_SCALING)
-            brick.right = 73*position[1] + 25
-            brick.bottom = 25*position[0]
-            self.block_list_4.append(brick)
-            
+            grey_bricks = [(10,7), (16,1), (16,13), (17,7), (18,6), (18,8), (19,5), (19,7), (19,9), (20,6), (20,8), (21,7), (25,3), (25,11), (26,2), (26,4), (26,10), (26,12)]
+
+            for position in grey_bricks:
+                brick = arcade.Sprite(BRICK_GREY, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_4.append(brick)
+
+        elif level == 1:
+
+            brown_bricks = [(14,2), (14,12), (15,3), (15,11), (16, 2), (16, 6), (16, 8), (16, 12), (17,5), (17,9), (18,7), (19,5), (19,9), (20,6), (20,8), (21,1), (21,13)]
+
+            for position in brown_bricks:
+                brick = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_1.append(brick)
+
+            red_bricks = [(14,3), (14,11), (15,2), (15,12), (16, 3), (16, 5), (16, 7), (16, 9), (16, 11), (18, 5), (18, 9), (20,5), (20,7), (20,9)]
+
+            for position in red_bricks:
+                brick = arcade.Sprite(BRICK_RED, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_2.append(brick)
+
+            pink_bricks = [(17,6), (17, 8), (19,6), (19,8), (22,2), (22,12), (23,3), (23,5), (23,9), (23,11), (24,4), (24,6), (24,8), (24,10)]
+
+            for position in pink_bricks:
+                brick = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_3.append(brick)
+
+            grey_bricks = [(17,7), (18,6), (18,8), (19,7), (25,7)]
+
+            for position in grey_bricks:
+                brick = arcade.Sprite(BRICK_GREY, BRICK_SCALING)
+                brick.right = 73*position[1] + 25
+                brick.bottom = 25*position[0]
+                self.block_list_4.append(brick)
+
+        elif level == 2:
+
+                brown_bricks = [(16,7)]
+                
+                for position in brown_bricks:
+                    brick = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
+                    brick.right = 73*position[1] + 25
+                    brick.bottom = 25*position[0]
+                    self.block_list_1.append(brick)
+
+                red_bricks = [(14,7), (15,6), (15,8), (16,5), (16,9), (17,6), (17,8), (18,7)]
+
+                for i in range(8,24):
+                    red_bricks.append((i,2))
+                    red_bricks.append((i, 12))
+
+                for position in red_bricks:
+                    brick = arcade.Sprite(BRICK_RED, BRICK_SCALING)
+                    brick.right = 73*position[1] + 25
+                    brick.bottom = 25*position[0]
+                    self.block_list_2.append(brick)
+
+                pink_bricks = [(15,7), (16,6), (16,8), (17,7)]
+
+                for i in range(2,13):
+                    pink_bricks.append((24,i))
+
+                for position in pink_bricks:
+                    brick = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
+                    brick.right = 73*position[1] + 25
+                    brick.bottom = 25*position[0]
+                    self.block_list_3.append(brick)
+
+                grey_bricks = [(20,1), (20,3), (20,11), (20,13), (21,2), (21,3), (21,11), (21,13), (22,4), (22,10), (23,5), (23,6), (23,8), (23,9), (25,6), (25,8), (26,6), (26,8)]
+
+                for position in grey_bricks:
+                    brick = arcade.Sprite(BRICK_GREY, BRICK_SCALING)
+                    brick.right = 73*position[1] + 25
+                    brick.bottom = 25*position[0]
+                    self.block_list_4.append(brick)
+                    
+                
+
+                
         ball_image = "images/ball.png"
                                   
         ball = arcade.Sprite(ball_image, BALL_SCALING)
         ball.center_x = SCREEN_WIDTH/2
-        ball.bottom = 25
+        ball.bottom = 80
         ball.change_y = 0
         ball.change_x = 0
         
@@ -138,14 +220,13 @@ class MyGame(arcade.View):
 
     def on_key_press(self, key, modifiers):
         for ball in self.coin_list:
-            if ball.change_y != 0:
-                if key == arcade.key.LEFT or key == arcade.key.A:
-                    self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
-                elif key == arcade.key.RIGHT or key == arcade.key.D:
-                    self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
-            else:
+            if key == arcade.key.LEFT or key == arcade.key.A:
+                self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+            elif key == arcade.key.RIGHT or key == arcade.key.D:
+                self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+            if ball.change_y == 0:
                 if key == arcade.key.SPACE:
-                    ball.change_y = 8
+                    ball.change_y = -8
                     ball.change_x = random.random()
             
     def on_key_release(self, key, modifiers):
@@ -157,8 +238,18 @@ class MyGame(arcade.View):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-
+        if self.score == 5:
+            self.level += 1
+            if self.level <= 3:
+                self.setup(self.level)
+            else:
+                game_over_view = GameOverView()
+                self.window.show_view(game_over_view)
+                
+            
         for ball in self.coin_list:
+
+            #checking collisions on x axis
 
             ball.center_x += ball.change_x
             
@@ -170,7 +261,6 @@ class MyGame(arcade.View):
             
             hit_blocks = hit_blocks1 + hit_blocks2 + hit_blocks3 + hit_blocks4
             
-            #player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
             x_hits = hit_walls + hit_blocks
 
             for wall in x_hits:
@@ -182,37 +272,39 @@ class MyGame(arcade.View):
                 ball.change_x *= -1
 
             for block in hit_blocks:
-                self.score += 1
                 if block in hit_blocks4:
                     block_new = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_3.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    ball.change_y *= 1.25
+                    #if ball.change_y < MAX_SPEED:
+                     #   ball.change_y *= 1.05
                 elif block in hit_blocks3:
                     block_new = arcade.Sprite(BRICK_RED, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_2.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    if ball.change_y < MAX_SPEED:
-                        ball.change_y *= 1.25
+                    #if ball.change_y < MAX_SPEED:
+                     #   ball.change_y *= 1.05
                 elif block in hit_blocks2:
                     block_new = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_1.append(block_new)
                     arcade.play_sound(self.color_sound)
-                    if ball.change_y < MAX_SPEED:
-                        ball.change_y *= 1.25
+                    #if ball.change_y < MAX_SPEED:
+                      #  ball.change_y *= 1.05
                 else:
+                    self.score += 1
                     arcade.play_sound(self.break_sound)
-                    if ball.change_y > MIN_SPEED:
-                        ball.change_y *= 0.9
+                    #if ball.change_y > MIN_SPEED:
+                      #  ball.change_y *= 0.9
                 block.remove_from_sprite_lists()
                 
-
+            #checking collisions for y axis
+                
             ball.center_y += ball.change_y
             
             hit_walls = arcade.check_for_collision_with_list(ball, self.wall_list)
@@ -240,21 +332,30 @@ class MyGame(arcade.View):
                     block_new.center_y = block.center_y
                     self.block_list_3.append(block_new)
                     arcade.play_sound(self.color_sound)
+                   # if ball.change_y < MAX_SPEED:
+                    #    ball.change_y *= 1.05
                 elif block in hit_blocks3:
                     block_new = arcade.Sprite(BRICK_RED, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_2.append(block_new)
                     arcade.play_sound(self.color_sound)
+                   # if ball.change_y < MAX_SPEED:
+                     #   ball.change_y *= 1.05
                 elif block in hit_blocks2:
                     block_new = arcade.Sprite(BRICK_BROWN, BRICK_SCALING)
                     block_new.center_x = block.center_x
                     block_new.center_y = block.center_y
                     self.block_list_1.append(block_new)
                     arcade.play_sound(self.color_sound)
+                  #  if ball.change_y < MAX_SPEED:
+                      #  ball.change_y *= 1.05
                 else:
-                    arcade.play_sound(self.break_sound)
                     self.score += 1
+                    arcade.play_sound(self.break_sound)
+                 #   if ball.change_y > MIN_SPEED:
+                     #   ball.change_y *= 0.9
+                
                 block.remove_from_sprite_lists()
                 
 
@@ -267,8 +368,15 @@ class MyGame(arcade.View):
                     ball.change_x = (ball.center_x - player.center_x)*0.1
 
             if ball.center_y < -100:
-                game_over_view = GameOverView()
-                self.window.show_view(game_over_view)
+                if self.lifes == 1:
+                    self.lifes = 0
+                    ball.center_x = SCREEN_WIDTH/2
+                    ball.bottom = 80
+                    ball.change_y = 0
+                    ball.change_x = 0
+                else:
+                    game_over_view = GameOverView()
+                    self.window.show_view(game_over_view)
                 
         self.physics_engine.update()
         
@@ -284,7 +392,7 @@ class MyGame(arcade.View):
         self.block_list_2.draw()
         self.block_list_3.draw()
         self.block_list_4.draw()
-        arcade.draw_text("Score: %d/92" % self.score, start_x = 25, start_y = 25, color = (0, 0, 0), font_size = 14)
+        arcade.draw_text("Score: %d/102" % self.score, start_x = 35, start_y = 25, color = (0, 0, 0), font_size = 14)
 
 class GameOverView(arcade.View):
     def __init__(self):
@@ -306,11 +414,13 @@ class GameOverView(arcade.View):
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
                                       texture = self.title_image)
-        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 470, width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 100))
-        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 470, width = SCREEN_WIDTH, height = 250, color = (0, 0, 0))
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH, height = 400, color = (255, 255, 255, 100))
+        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH, height = 400, color = (0, 0, 0))
         arcade.draw_text("Game Over!", 200, 430, arcade.color.BLACK, 100)
+        arcade.draw_text("Score:", 350, 390, (0, 0, 0), 32)
+        arcade.draw_text("Player's name:", 275, 325, (0,0,0), 24)
         if self.show_press:
-            arcade.draw_text("Press SPACE to play again", start_x = 325, start_y = 380, color = arcade.color.BLACK, font_size = 25)
+            arcade.draw_text("Press SPACE to play again", start_x = 325, start_y = 250, color = arcade.color.BLACK, font_size = 25)
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.SPACE:
@@ -355,7 +465,7 @@ class TitleView(arcade.View):
         if key == arcade.key.SPACE:
             arcade.play_sound(self.start_sound)
             game_view = MyGame()
-            game_view.setup()
+            game_view.setup(1)
             self.window.show_view(game_view)
         elif key == arcade.key.M:
             game_view = InformationView()
