@@ -15,9 +15,13 @@ BRICK_RED = "images/brick2.jpg"
 BRICK_FADED = "images/brick3.jpg"
 BRICK_GREY = "images/brick4.jpg"
 
+BALL = "images/ball.png"
+
 COLOR_SOUND = "sounds/change_color.wav"
 BREAK_SOUND = "sounds/break_down.wav"
 STARTING_SOUND = "sounds/start_game.wav"
+GIFT_SOUND = "sounds/gift_take.wav"
+
 
 PLAYER_MOVEMENT_SPEED = 12
 MAX_SPEED = 10
@@ -36,6 +40,8 @@ class MyGame(arcade.View):
         self.block_list_3 = None
         self.block_list_4 = None
 
+        self.gift_ball = None
+
         self.start_game = False
         self.lifes = 1
         self.level = 1
@@ -46,6 +52,7 @@ class MyGame(arcade.View):
 
         self.color_sound = arcade.load_sound(COLOR_SOUND)
         self.break_sound = arcade.load_sound(BREAK_SOUND)
+        self.gift_sound = arcade.load_sound(GIFT_SOUND)
         
         
         self.player_list = None
@@ -67,6 +74,8 @@ class MyGame(arcade.View):
         self.block_list_2 = arcade.SpriteList()
         self.block_list_3 = arcade.SpriteList()
         self.block_list_4 = arcade.SpriteList()
+
+        self.gift_ball = arcade.SpriteList()
 
         self.background = arcade.load_texture("images/wall.jpg")
 
@@ -202,9 +211,6 @@ class MyGame(arcade.View):
                     brick.right = 73*position[1] + 25
                     brick.bottom = 25*position[0]
                     self.block_list_4.append(brick)
-                    
-                
-
                 
         ball_image = "images/ball.png"
                                   
@@ -238,15 +244,30 @@ class MyGame(arcade.View):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-        if self.score == 5:
-            self.level += 1
-            if self.level <= 3:
-                self.setup(self.level)
-            else:
+        if self.level == 1:
+            if self.score == 50:
+                self.level = 2
+                self.setup(2)
+        elif self.level == 2:
+            if self.score == 74:
+                self.level = 3
+                self.setup(3)
+        elif self.level == 3:
+            if self.score == 92:
                 game_over_view = GameOverView()
                 self.window.show_view(game_over_view)
-                
+
+        self.gift_ball.on_update(delta_time)
+
+        for player in self.player_list:
             
+            hit_gifts = arcade.check_for_collision_with_list(player, self.gift_ball)
+
+            for gift in hit_gifts:
+                self.lifes += 1
+                gift.remove_from_sprite_lists()
+                arcade.play_sound(self.gift_sound)
+                
         for ball in self.coin_list:
 
             #checking collisions on x axis
@@ -324,7 +345,15 @@ class MyGame(arcade.View):
                     ball.bottom = wall.top        
             if len(y_hits) > 0:
                 ball.change_y *= -1
-
+                
+            for block in hit_blocks:
+                if_gift = random.random()
+                if if_gift > 0.5:
+                    gift = GiftBall(BALL, 0.1)
+                    gift.center_x = block.center_x
+                    gift.top = block.bottom
+                    self.gift_ball.append(gift)
+                    
             for block in hit_blocks:
                 if block in hit_blocks4:
                     block_new = arcade.Sprite(BRICK_FADED, BRICK_SCALING)
@@ -368,8 +397,8 @@ class MyGame(arcade.View):
                     ball.change_x = (ball.center_x - player.center_x)*0.1
 
             if ball.center_y < -100:
-                if self.lifes == 1:
-                    self.lifes = 0
+                if self.lifes > 0:
+                    self.lifes -= 1
                     ball.center_x = SCREEN_WIDTH/2
                     ball.bottom = 80
                     ball.change_y = 0
@@ -387,12 +416,13 @@ class MyGame(arcade.View):
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
         self.wall_list.draw()
         self.coin_list.draw()
+        self.gift_ball.draw()
         self.player_list.draw()
         self.block_list_1.draw()
         self.block_list_2.draw()
         self.block_list_3.draw()
         self.block_list_4.draw()
-        arcade.draw_text("Score: %d/102" % self.score, start_x = 35, start_y = 25, color = (0, 0, 0), font_size = 14)
+        arcade.draw_text("Score: %d" % self.score, start_x = 35, start_y = 25, color = (0, 0, 0), font_size = 14)
 
 class GameOverView(arcade.View):
     def __init__(self):
@@ -428,6 +458,14 @@ class GameOverView(arcade.View):
             view = TitleView()
             self.window.show_view(view)
 
+class GiftBall(arcade.Sprite):
+
+    def __init__(self, image_file, scale):
+        super().__init__(image_file, scale)
+
+    def on_update(self, delta_time):
+        self.center_y += -4
+        
 class TitleView(arcade.View):
 
     def __init__(self):
