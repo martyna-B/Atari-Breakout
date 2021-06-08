@@ -16,6 +16,11 @@ BRICK_RED = "images/brick2.jpg"
 BRICK_FADED = "images/brick3.jpg"
 BRICK_GREY = "images/brick4.jpg"
 
+PLAYER_IMAGE = "images/player_wall.jpg"
+
+WALLY_IMAGE = "images/y_wall.jpg"
+WALLX_IMAGE = "images/x_wall.jpg"
+
 BALL = "images/ball.png"
 
 COLOR_SOUND = "sounds/change_color.wav"
@@ -81,7 +86,7 @@ def organize_data(index):
         sorted_players = []
         for i in range(0,len(sorted_score)):
             for j in range(0, len(players_score)):
-                if sorted_score[i] == players_score[j]:
+                if sorted_score[i] == eval(players_score[j]):
                     sorted_players.append(players_name[j])
         return sorted_players
 
@@ -94,7 +99,7 @@ def score_show():
     text = ""
     for i in range(0, len(names)):
         if i < 5:
-            text += (names[i] + ": " + scores[i] + "\n\n")
+            text += (names[i] + ": " + f'{scores[i]}' + "\n\n")
         else:
             break
     return text
@@ -105,33 +110,35 @@ class MyGame(arcade.View):
     """
 
     def __init__(self):
+        """
+        Initlizies game.
+        """
 
         super().__init__()
 
         self.ball_list = None
+        self.player_list = None
+        self.player_sprite = None
+
+        #Walls.
         self.wall_list = None
         self.block_list_1 = None
         self.block_list_2 = None
         self.block_list_3 = None
         self.block_list_4 = None
 
-        self.gift_ball = None
-        self.start_game = False       
+        #Extra balls.       
         self.lifes = None
+        self.gift_ball = None
 
         self.level = 1
 
+        #Sounds and backgrounds.
         self.color_sound = arcade.load_sound(COLOR_SOUND)
         self.break_sound = arcade.load_sound(BREAK_SOUND)
         self.gift_sound = arcade.load_sound(GIFT_SOUND)
-        
-        
-        self.player_list = None
-
-        self.background = None
-
-        self.player_sprite = None
-        
+        self.background = arcade.load_texture("images/wall.jpg")
+         
         self.physics_engine = None
 
 
@@ -155,32 +162,29 @@ class MyGame(arcade.View):
         self.gift_ball = arcade.SpriteList()
         self.lifes = arcade.SpriteList()
 
-        self.background = arcade.load_texture("images/wall.jpg")
-
-        player_image = "images/player_wall.jpg"
-
-        self.player_sprite = arcade.Sprite(player_image, PLAYER_SCALING)
+        #Placing player.
+        self.player_sprite = arcade.Sprite(PLAYER_IMAGE, PLAYER_SCALING)
         self.player_sprite.center_x = 500
         self.player_sprite.bottom = 0
         self.player_list.append(self.player_sprite)
 
-        wally_image = "images/y_wall.jpg"
 
+        #Placing walls.
         for y in [-708, -354, 0, 354, 708]:
             for x in [1, 1000]:
-                wall = arcade.Sprite(wally_image, WALL_SCALING)
+                wall = arcade.Sprite(WALLY_IMAGE, WALL_SCALING)
                 wall.center_x = x
                 wall.center_y = y
                 self.wall_list.append(wall)
 
-        wallx_image = "images/x_wall.jpg"
-
         for x in range(0, 1250, 354):
-            wall = arcade.Sprite(wallx_image, WALL_SCALING)
+            wall = arcade.Sprite(WALLX_IMAGE, WALL_SCALING)
             wall.center_x = x
             wall.center_y = 710
             self.wall_list.append(wall)
 
+
+        #Placing bricks according to level.
         if level == 3:
 
             brown_bricks = [(8,3), (8,11), (14,7), (15,6), (15,8), (16,5), (16,9), (17,4), (17,10), (18,3), (18,11), (19,2), (19,12), (20,3), (20,11), (21,4), (21,10), (22,5), (22,9), (23,6), (23,8), (24,7)]
@@ -292,25 +296,24 @@ class MyGame(arcade.View):
                     brick.bottom = 25*position[0]
                     self.block_list_4.append(brick)
                 
-        ball_image = "images/ball.png"
-                                  
-        ball = arcade.Sprite(ball_image, BALL_SCALING)
+        #Placing a ball.                          
+        ball = arcade.Sprite(BALL, BALL_SCALING)
         ball.center_x = SCREEN_WIDTH/2
         ball.bottom = 80
         ball.change_y = 0
-        ball.change_x = 0
-        
+        ball.change_x = 0 
         self.ball_list.append(ball)
 
+        #Setting up lifes.
         life = arcade.Sprite(BALL, 0.1)
         life.center_x = len(self.lifes)*20 + 20
         life.top = SCREEN_HEIGHT - 2
-
         self.lifes.append(life) 
 
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
     def on_key_press(self, key, modifiers):
+        
         for ball in self.ball_list:
             if key == arcade.key.LEFT or key == arcade.key.A:
                 self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
@@ -333,6 +336,7 @@ class MyGame(arcade.View):
         global score
         global num_of_bounds
 
+        #Checking if number of scores allows to move to another level. If so, sets up it.
         if self.level == 1:
             if score == 50:
                 self.level = 2
@@ -346,6 +350,8 @@ class MyGame(arcade.View):
                 game_over_view = GameOverView()
                 self.window.show_view(game_over_view)
 
+
+        #Moving gift balls and checking if player has cathed them.
         self.gift_ball.on_update(delta_time)
 
         for player in self.player_list:
@@ -359,10 +365,12 @@ class MyGame(arcade.View):
                 self.lifes.append(life)
                 gift.remove_from_sprite_lists()
                 arcade.play_sound(self.gift_sound)
-                
+
+
+        #Ball collisions.        
         for ball in self.ball_list:
 
-            #checking collisions on x axis
+            #Collisions on x axis.
 
             ball.center_x += ball.change_x
             
@@ -412,7 +420,7 @@ class MyGame(arcade.View):
                     
                 block.remove_from_sprite_lists()
                 
-            #checking collisions for y axis
+            #Collisions for y axis
                 
             ball.center_y += ball.change_y
             
@@ -469,8 +477,9 @@ class MyGame(arcade.View):
                     arcade.play_sound(self.break_sound)
                 
                 block.remove_from_sprite_lists()
-                
 
+                
+            #Collisions with player.
             player_wall = arcade.check_for_collision_with_list(ball, self.player_list)
             
             for wall in player_wall:
@@ -503,7 +512,10 @@ class MyGame(arcade.View):
     def on_draw(self):
         
         arcade.start_render()
+
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
+        arcade.draw_text("Score: %d" % score, start_x = 35, start_y = 25, color = (0, 0, 0), font_size = 14)
+
         self.wall_list.draw()
         self.ball_list.draw()
         self.gift_ball.draw()
@@ -513,16 +525,27 @@ class MyGame(arcade.View):
         self.block_list_2.draw()
         self.block_list_3.draw()
         self.block_list_4.draw()
-        arcade.draw_text("Score: %d" % score, start_x = 35, start_y = 25, color = (0, 0, 0), font_size = 14)
+
         
 class GameOverView(arcade.View):
+    """
+    Class that represents window that is shown when the game is over.
+    """
+
     def __init__(self):
+
         super().__init__()
         self.ui_manager = UIManager()
+
+        #Sound and background.
         self.start_sound = arcade.load_sound(STARTING_SOUND)
         self.title_image = arcade.load_texture("images/menu_wall.jpg")
+        
+        #Blinking text.
         self.display_timer = 1.0
         self.show_press = False
+
+        #Score.
         self.total_score = score + (1 - score/num_of_bounds)*score
 
     def on_update(self, delta_time: float):
@@ -533,15 +556,22 @@ class GameOverView(arcade.View):
             self.display_timer = 1.0
 
     def on_draw(self):
+
         global score
         global num_of_bounds
 
         arcade.start_render()
+
+        #Backgrounds.
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
                                       texture = self.title_image)
-        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH, height = 400, color = (255, 255, 255, 100))
-        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH, height = 400, color = (0, 0, 0))
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH,
+                                     height = 400, color = (255, 255, 255, 100))
+        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH,
+                                     height = 400, color = (0, 0, 0))
+
+        #Texts.
         arcade.draw_text("Game Over!", 200, 430, arcade.color.BLACK, 100)
         arcade.draw_text("Total score:      %d" % self.total_score, 280, 380, (0, 0, 0), 32)
         arcade.draw_text("Player's name:", 275, 325, (0,0,0), 24)
@@ -557,13 +587,15 @@ class GameOverView(arcade.View):
     def setup(self):
         self.ui_manager.purge_ui_elements()
 
+        #Input box.
         ui_input_box = arcade.gui.UIInputBox(center_x = 650, center_y = 340, width = 300)
-        ui_input_box.text = "NoNamePlayer"
+        ui_input_box.text = "Player"
         ui_input_box.cursor_index = len(ui_input_box.text)
         self.ui_manager.add_ui_element(ui_input_box)
         self.input_box = ui_input_box
 
     def on_key_press(self, key, modifiers):
+        
         global players_name
         global players_score
         
