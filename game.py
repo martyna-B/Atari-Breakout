@@ -21,18 +21,24 @@ BALL = "images/ball.png"
 COLOR_SOUND = "sounds/change_color.wav"
 BREAK_SOUND = "sounds/break_down.wav"
 STARTING_SOUND = "sounds/start_game.wav"
-GIFT_SOUND = "sounds/gift_take.wav"
+GIFT_SOUND = "sounds/pick_a_gift.wav"
 
 PLAYER_MOVEMENT_SPEED = 12
-MAX_SPEED = 10
-MIN_SPEED = 6
+BALL_SPEED = 11
 
 score = 0
 num_of_bounds = 0
 
 def take_data(index):
     """
+    Returns a list which contains particular data from file "Scores.csv".
+
+    Paramters
+    ---------
+    index(int): returned list that contains players' names if index equals 1
+                returned list that contains players' scores if index equals 2
     """
+    
     if os.path.isfile("Scores.csv"):
         if index == 1 or index == 2:
             with open("Scores.csv", "r") as csv_file:
@@ -51,7 +57,52 @@ def take_data(index):
 players_name = take_data(1)
 players_score = take_data(2)
 
+def organize_data(index):
+    """
+    Sorts players' scores and names according to height of scores.
+
+    Paramters
+    ---------
+    index(int): returned list that contains sorted players' names if index equals 1
+                returned list that contains sorted players' scores if index equals 2
+    """
+    
+    players_score = take_data(2)
+    sorted_score = []
+    for score in players_score:
+        num_score = eval(score)
+        sorted_score.append(num_score)     
+    sorted_score.sort()
+    sorted_score.reverse()
+    if index == 2:
+        return sorted_score
+    elif index == 1:
+        players_name = take_data(1)
+        sorted_players = []
+        for i in range(0,len(sorted_score)):
+            for j in range(0, len(players_score)):
+                if sorted_score[i] == players_score[j]:
+                    sorted_players.append(players_name[j])
+        return sorted_players
+
+def score_show():
+    """
+    Returns text that will be shown in HIGH SCORES label.
+    """
+    names = organize_data(1)
+    scores = organize_data(2)
+    text = ""
+    for i in range(0, len(names)):
+        if i < 5:
+            text += (names[i] + ": " + scores[i] + "\n\n")
+        else:
+            break
+    return text
+
 class MyGame(arcade.View):
+    """
+    Class thet represents game "Atari Breakout".
+    """
 
     def __init__(self):
 
@@ -267,7 +318,7 @@ class MyGame(arcade.View):
                 self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
             if ball.change_y == 0:
                 if key == arcade.key.SPACE:
-                    ball.change_y = -8
+                    ball.change_y = -BALL_SPEED
                     ball.change_x = random.random()
             
     def on_key_release(self, key, modifiers):
@@ -588,6 +639,13 @@ class InformationView(arcade.View):
         self.title_image = arcade.load_texture("images/menu_wall.jpg")
 
     def on_draw(self):
+        global players_name
+        global players_score
+
+        players_name = take_data(1)
+        players_score = take_data(2)
+        score_text = score_show()
+        
         arcade.start_render()
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
@@ -604,8 +662,8 @@ class InformationView(arcade.View):
         arcade.draw_text("My name is Martyna and I study Applied Mathematics at Wroclaw University of Science and Technology.\n\nI made this game for my programming classes.", start_x = 25, start_y = 320, color = (0, 0, 0), font_size = 18)
         arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 150,
                                       width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 200))
-        arcade.draw_text("HIGH SCORES", start_x = 25, start_y = 225, color = arcade.color.BLACK, font_size = 32)
-        arcade.draw_text("", start_x = 25, start_y = 150, color = arcade.color.BLACK, font_size = 18)
+        arcade.draw_text("HIGH SCORES:", start_x = 25, start_y = 225, color = arcade.color.BLACK, font_size = 32)
+        arcade.draw_text(score_text, start_x = 25, start_y = 7, color = arcade.color.BLACK, font_size = 18)
         
     def on_key_press(self, key, modifiers):
         if key == arcade.key.SPACE:
