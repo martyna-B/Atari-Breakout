@@ -27,6 +27,7 @@ COLOR_SOUND = "sounds/change_color.wav"
 BREAK_SOUND = "sounds/break_down.wav"
 STARTING_SOUND = "sounds/start_game.wav"
 GIFT_SOUND = "sounds/pick_a_gift.wav"
+BOUNCE_SOUND = "sounds/bounce.wav"
 
 PLAYER_MOVEMENT_SPEED = 12
 BALL_SPEED = 11
@@ -104,9 +105,9 @@ def score_show():
             break
     return text
 
-class MyGame(arcade.View):
+class AtariBreakout(arcade.View):
     """
-    Class thet represents game "Atari Breakout".
+    Main apliaction class.
     """
 
     def __init__(self):
@@ -137,12 +138,21 @@ class MyGame(arcade.View):
         self.color_sound = arcade.load_sound(COLOR_SOUND)
         self.break_sound = arcade.load_sound(BREAK_SOUND)
         self.gift_sound = arcade.load_sound(GIFT_SOUND)
+        self.start_sound = arcade.load_sound(STARTING_SOUND)
         self.background = arcade.load_texture("images/wall.jpg")
+        self.bounce_sound = arcade.load_sound(BOUNCE_SOUND)
          
         self.physics_engine = None
 
 
     def setup(self, level):
+        """
+        Sets up the game.
+
+        Parameters
+        ----------
+        level(int): according to level's number the game looks different
+        """
 
         global score
         global players_name
@@ -317,6 +327,10 @@ class MyGame(arcade.View):
         for ball in self.ball_list:
             if key == arcade.key.LEFT or key == arcade.key.A:
                 self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+            elif key == arcade.key.ESCAPE:
+                arcade.play_sound(self.start_sound)
+                game_view = TitleView()
+                self.window.show_view(game_view)
             elif key == arcade.key.RIGHT or key == arcade.key.D:
                 self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
             if ball.change_y == 0:
@@ -332,7 +346,7 @@ class MyGame(arcade.View):
             self.player_sprite.change_x = 0
 
     def on_update(self, delta_time):
-        """ Movement and game logic """
+        
         global score
         global num_of_bounds
 
@@ -346,7 +360,7 @@ class MyGame(arcade.View):
                 self.level = 3
                 self.setup(3)
         elif self.level == 3:
-            if score == 212:
+            if score == 216:
                 game_over_view = GameOverView()
                 self.window.show_view(game_over_view)
 
@@ -485,6 +499,7 @@ class MyGame(arcade.View):
             for wall in player_wall:
                 ball.bottom = wall.top
                 for player in self.player_list:
+                    arcade.play_sound(self.bounce_sound)
                     num_of_bounds += 1
                     ball.change_y *= -1
                     ball.change_x = (ball.center_x - player.center_x)*0.1
@@ -525,8 +540,7 @@ class MyGame(arcade.View):
         self.block_list_2.draw()
         self.block_list_3.draw()
         self.block_list_4.draw()
-
-        
+       
 class GameOverView(arcade.View):
     """
     Class that represents window that is shown when the game is over.
@@ -546,9 +560,10 @@ class GameOverView(arcade.View):
         self.show_press = False
 
         #Score.
-        self.total_score = score + (1 - score/num_of_bounds)*score
+        self.total_score = score + (1 - (0.5*num_of_bounds)/score)*score
 
     def on_update(self, delta_time: float):
+
         self.display_timer -= delta_time
         
         if self.display_timer < 0:
@@ -566,8 +581,10 @@ class GameOverView(arcade.View):
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
                                       texture = self.title_image)
+
         arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH,
                                      height = 400, color = (255, 255, 255, 100))
+
         arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 400, width = SCREEN_WIDTH,
                                      height = 400, color = (0, 0, 0))
 
@@ -576,7 +593,8 @@ class GameOverView(arcade.View):
         arcade.draw_text("Total score:      %d" % self.total_score, 280, 380, (0, 0, 0), 32)
         arcade.draw_text("Player's name:", 275, 325, (0,0,0), 24)
         if self.show_press:
-            arcade.draw_text("Press SPACE to play again", start_x = 350, start_y = 250, color = arcade.color.BLACK, font_size = 25)
+            arcade.draw_text("Press SPACE to play again", start_x = 350, start_y = 250, 
+                                color = arcade.color.BLACK, font_size = 25)
 
     def on_show_view(self):
         self.setup()
@@ -595,6 +613,10 @@ class GameOverView(arcade.View):
         self.input_box = ui_input_box
 
     def on_key_press(self, key, modifiers):
+        """
+        When SPACE is pressed, program saves score into the CSV file and changes view to the TitleView.
+        When ESCAPE is pressed, program quits.
+        """
         
         global players_name
         global players_score
@@ -612,7 +634,13 @@ class GameOverView(arcade.View):
             view = TitleView()
             self.window.show_view(view)
 
+        elif key == arcade.key.ESCAPE:      
+                arcade.close_window()
+
 class GiftBall(arcade.Sprite):
+    """
+    Class that represents balls, which sometime spawn when the brick has just been broken.
+    """
 
     def __init__(self, image_file, scale):
         super().__init__(image_file, scale)
@@ -621,16 +649,24 @@ class GiftBall(arcade.Sprite):
         self.center_y += -4
         
 class TitleView(arcade.View):
+    """
+    Menu window. User sees it when they run this program. 
+    """
 
     def __init__(self):
+
         super().__init__()
 
+        #Sound and background.
         self.start_sound = arcade.load_sound(STARTING_SOUND)
         self.title_image = arcade.load_texture("images/menu_wall.jpg")
+
+        #Blinking text.
         self.display_timer = 1.0
         self.show_press = False
 
     def on_update(self, delta_time: float):
+
         self.display_timer -= delta_time
         
         if self.display_timer < 0:
@@ -638,39 +674,66 @@ class TitleView(arcade.View):
             self.display_timer = 1.0
 
     def on_draw(self):
+
         arcade.start_render()
 
+        #Backgrounds.
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
                                       texture = self.title_image)
-        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 100))
-        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH, height = 250, color = (0, 0, 0))
+
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH,
+                                     height = 250, color = (255, 255, 255, 100))
+
+        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 70, width = SCREEN_WIDTH,
+                                     height = 50, color = (255, 255, 255, 60))
+
+        arcade.draw_rectangle_outline(center_x = SCREEN_WIDTH/2, center_y = 490, width = SCREEN_WIDTH,
+                                     height = 250, color = (0, 0, 0))
+        
+        #Texts.
         arcade.draw_text("Atari Breakout", start_x = 240, start_y = 500, color = arcade.color.BLACK, font_size=70)
+        arcade.draw_text("Press M for more information", start_x = 310, start_y = 50, color = arcade.color.BLACK, font_size = 25)
 
         if self.show_press:
             arcade.draw_text("Press SPACE to start", start_x = 300, start_y = 400, color = arcade.color.BLACK, font_size = 40)
-
-        arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 70, width = SCREEN_WIDTH, height = 50, color = (255, 255, 255, 60))
-        arcade.draw_text("Press M for more information", start_x = 310, start_y = 50, color = arcade.color.BLACK, font_size = 25)
+  
+       
         
     def on_key_press(self, key, modifiers):
+        
+        """
+        When SPACE is pressed, the game starts.
+        When M is pressed, ImformationView is shown.
+        When ESCAPE is pressed, program quits.
+        """
+
         if key == arcade.key.SPACE:
             arcade.play_sound(self.start_sound)
-            game_view = MyGame()
+            game_view = AtariBreakout()
             game_view.setup(1)
             self.window.show_view(game_view)
         elif key == arcade.key.M:
             game_view = InformationView()
             self.window.show_view(game_view)
+        elif key == arcade.key.ESCAPE:      
+                arcade.close_window()
 
 class InformationView(arcade.View):
+    """
+    Window with extra information: short instrucion, information about the author and high scores.
+    """
 
     def __init__(self):
+
         super().__init__()
+
+        #Sound and background.
         self.start_sound = arcade.load_sound(STARTING_SOUND)
         self.title_image = arcade.load_texture("images/menu_wall.jpg")
 
     def on_draw(self):
+
         global players_name
         global players_score
 
@@ -679,26 +742,47 @@ class InformationView(arcade.View):
         score_text = score_show()
         
         arcade.start_render()
+
+        #Instrucion.
         arcade.draw_texture_rectangle(center_x = SCREEN_WIDTH/2, center_y = SCREEN_HEIGHT/2,
                                       width = SCREEN_WIDTH, height = SCREEN_HEIGHT,
                                       texture = self.title_image)
+
         arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 595,
                                       width = SCREEN_WIDTH, height = 200, color = (255, 255, 255, 200))
+
         arcade.draw_text("HOW TO PLAY?", start_x = 25, start_y = 650, color = arcade.color.BLACK, font_size=32)
-        arcade.draw_text("Press SPACE to start, then use arrow or WSAD keys to move your platfrom and bounce a ball.\n\nYour purpose is to break down all the bricks.\n\nBroken brick may spawn a gift if you're lucky. You get one extra life if you catch it.\n\nDont let the ball fall down!",
+
+        arcade.draw_text("Press SPACE to start, then use arrows or WSAD keys to move your platfrom and bounce a ball.\n\nYour goal is to break down all the bricks.\n\nBroken brick may spawn a gift if you're lucky. You get one extra life if you catch it.\n\nDont let the ball fall down!",
                          start_x = 25, start_y = 500, color = arcade.color.BLACK, font_size=18)
 
+        #Information about the author.
         arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 375,
                                       width = SCREEN_WIDTH, height = 150, color = (255, 255, 255, 200))
-        arcade.draw_text("ABOUT AUTHOR", start_x = 25, start_y = 400, color = arcade.color.BLACK, font_size = 32)
-        arcade.draw_text("My name is Martyna and I study Applied Mathematics at Wroclaw University of Science and Technology.\n\nI made this game for my programming classes.", start_x = 25, start_y = 320, color = (0, 0, 0), font_size = 18)
+
+        arcade.draw_text("ABOUT THE AUTHOR", start_x = 25, start_y = 400, color = arcade.color.BLACK, font_size = 32)
+
+        arcade.draw_text("My name is Martyna and I study Applied Mathematics at Wroclaw University of Science and Technology.\n\nI made this game for my programming classes.", 
+                        start_x = 25, start_y = 320, color = (0, 0, 0), font_size = 18) 
+
         arcade.draw_rectangle_filled(center_x = SCREEN_WIDTH/2, center_y = 150,
                                       width = SCREEN_WIDTH, height = 250, color = (255, 255, 255, 200))
+
+        #High scores.
         arcade.draw_text("HIGH SCORES:", start_x = 25, start_y = 225, color = arcade.color.BLACK, font_size = 32)
         arcade.draw_text(score_text, start_x = 25, start_y = 7, color = arcade.color.BLACK, font_size = 18)
         
     def on_key_press(self, key, modifiers):
+        """
+        When SPACE is pressed, TitleView is shown.
+        When ESCAPE is pressed, program quits.
+        """
+        
         if key == arcade.key.SPACE:
+            arcade.play_sound(self.start_sound)
+            game_view = TitleView()
+            self.window.show_view(game_view)
+        elif key == arcade.key.ESCAPE:
             arcade.play_sound(self.start_sound)
             game_view = TitleView()
             self.window.show_view(game_view)
