@@ -76,7 +76,7 @@ def organize_data(index):
     players_score = take_data(2)
     sorted_score = []
     for score in players_score:
-        num_score = eval(score)
+        num_score = int(eval(score))
         sorted_score.append(num_score)     
     sorted_score.sort()
     sorted_score.reverse()
@@ -87,7 +87,7 @@ def organize_data(index):
         sorted_players = []
         for i in range(0,len(sorted_score)):
             for j in range(0, len(players_score)):
-                if sorted_score[i] == eval(players_score[j]):
+                if sorted_score[i] == int(eval(players_score[j])):
                     sorted_players.append(players_name[j])
         return sorted_players
 
@@ -100,7 +100,7 @@ def score_show():
     text = ""
     for i in range(0, len(names)):
         if i < 5:
-            text += (names[i] + ": " + f'{scores[i]}' + "\n\n")
+            text += (names[i] + ":   " + f'{scores[i]}' + "\n\n")
         else:
             break
     return text
@@ -560,7 +560,7 @@ class GameOverView(arcade.View):
         self.show_press = False
 
         #Score.
-        self.total_score = score + (1 - (0.5*num_of_bounds)/score)*score
+        self.total_score = score + (1 - (num_of_bounds/(score+num_of_bounds)))*score
 
     def on_update(self, delta_time: float):
 
