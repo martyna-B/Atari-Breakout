@@ -4,7 +4,7 @@
 
 ![Level 3](https://drive.google.com/uc?id=1tsFuByNyITlvrtORE7MYnXf89EUZlOEN)
 
-### Go through three different levels and challenge yourself to get the best score! 
+#### Go through three different levels and challenge yourself to get the best score! 
 
 ![Level 2](https://drive.google.com/uc?id=1IwatNlHvW31f_bS6JW4ulL-lh_ZqIFQI)
 
